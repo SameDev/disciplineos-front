@@ -1,98 +1,298 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { useCallback, useMemo, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  RefreshControl,
+  Pressable,
+} from 'react-native';
+import { router } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useTasks, useCompleteTask, useDeleteTask } from '@/hooks/use-tasks';
+import { useProfile } from '@/hooks/use-profile';
+import { useAuth } from '@/hooks/use-auth';
+import { xpToNextLevel, xpProgressInLevel } from '@/lib/gamification';
+import { XPBar } from '@/components/xp-bar';
+import { StatBadge } from '@/components/stat-badge';
+import { TaskCard } from '@/components/task-card';
+import { colors, fontSize, spacing, radius } from '@/constants/theme';
+import type { TaskWithCompletion } from '@/types/database';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+type Filter = 'all' | 'pending' | 'done';
+
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: 'all', label: 'Todas' },
+  { key: 'pending', label: 'Pendentes' },
+  { key: 'done', label: 'Feitas' },
+];
+
+function getMotivation(pending: number, done: number): string {
+  const total = pending + done;
+  if (total === 0) return 'Crie sua primeira missão 🎯';
+  if (done === 0) return `${pending} missão${pending > 1 ? 'ões' : ''} te aguarda${pending > 1 ? 'm' : ''}! ⚡`;
+  if (pending === 0) return 'Tudo feito! Você arrasou hoje 🏆';
+  const pct = Math.round((done / total) * 100);
+  if (pct >= 75) return `${pct}% completo — quase lá! 🔥`;
+  if (pct >= 50) return `Metade feita! Continue 💪`;
+  return `${done} de ${total} feita${done > 1 ? 's' : ''} — vai em frente ⚔️`;
+}
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const { data: tasks, isLoading: tasksLoading, refetch: refetchTasks } = useTasks();
+  const { data: profile, isLoading: profileLoading, refetch: refetchProfile } = useProfile();
+  const completeTask = useCompleteTask();
+  const deleteTask = useDeleteTask();
+  const { signOut } = useAuth();
+  const completingTaskId = useRef<string | null>(null);
+  const [filter, setFilter] = useState<Filter>('all');
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const isRefreshing = tasksLoading || profileLoading;
+
+  const handleRefresh = useCallback(() => {
+    refetchTasks();
+    refetchProfile();
+  }, [refetchTasks, refetchProfile]);
+
+  const handleComplete = useCallback((task: TaskWithCompletion) => {
+    if (completingTaskId.current === task.id) return;
+    completingTaskId.current = task.id;
+    completeTask.mutate(task, {
+      onSettled: () => { completingTaskId.current = null; },
+    });
+  }, [completeTask]);
+
+  const handleEdit = useCallback((task: TaskWithCompletion) => {
+    router.push({
+      pathname: '/(tabs)/create',
+      params: {
+        editId: task.id,
+        editTitle: task.title,
+        editType: task.type,
+        editDifficulty: task.difficulty,
+      },
+    });
+  }, []);
+
+  const handleDelete = useCallback((task: TaskWithCompletion) => {
+    deleteTask.mutate(task.id);
+  }, [deleteTask]);
+
+  const level = profile?.level ?? 1;
+  const xpProgress = profile ? xpProgressInLevel(profile.xp) : 0;
+  const xpNeeded = xpToNextLevel(level);
+
+  const { filtered, pendingCount, doneCount } = useMemo(() => {
+    if (!tasks) return { filtered: [], pendingCount: 0, doneCount: 0 };
+
+    const pending = tasks.filter((t) => !t.completed_today);
+    const done = tasks.filter((t) => t.completed_today);
+
+    // pending first, done at bottom
+    const sorted = [...pending, ...done];
+
+    let filtered: TaskWithCompletion[];
+    if (filter === 'pending') filtered = pending;
+    else if (filter === 'done') filtered = done;
+    else filtered = sorted;
+
+    return { filtered, pendingCount: pending.length, doneCount: done.length };
+  }, [tasks, filter]);
+
+  const renderItem = useCallback(({ item }: { item: TaskWithCompletion }) => (
+    <TaskCard
+      task={item}
+      onComplete={handleComplete}
+      onEdit={handleEdit}
+      onDelete={handleDelete}
+      isCompleting={completingTaskId.current === item.id}
+    />
+  ), [handleComplete, handleEdit, handleDelete]);
+
+  const keyExtractor = useCallback((item: TaskWithCompletion) => item.id, []);
+
+  return (
+    <GestureHandlerRootView style={styles.flex}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        {/* Header */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.heroTitle}>⚔️ MetaQuest</Text>
+            <Text style={styles.motivation}>
+              {getMotivation(pendingCount, doneCount)}
+            </Text>
+          </View>
+          <Pressable onPress={signOut} style={styles.logoutBtn}>
+            <Text style={styles.logoutText}>Sair</Text>
+          </Pressable>
+        </View>
+
+        {/* Stats */}
+        <View style={styles.stats}>
+          <View style={styles.badges}>
+            <StatBadge icon="🏆" label="Level" value={level} color={colors.levelGold} />
+            <StatBadge
+              icon="🔥"
+              label="Streak"
+              value={`${profile?.streak ?? 0}d`}
+              color={colors.streakFire}
+            />
+            <StatBadge
+              icon="⚡"
+              label="XP Total"
+              value={profile?.xp ?? 0}
+              color={colors.accentGlow}
+            />
+          </View>
+          <XPBar currentXP={xpProgress} maxXP={xpNeeded} level={level} />
+        </View>
+
+        {/* Filters */}
+        <View style={styles.filterRow}>
+          {FILTERS.map((f) => (
+            <Pressable
+              key={f.key}
+              style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
+              onPress={() => setFilter(f.key)}
+            >
+              <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
+                {f.label}
+                {f.key === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}
+                {f.key === 'done' && doneCount > 0 ? ` (${doneCount})` : ''}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
+        {/* Task list */}
+        <FlatList
+          data={filtered}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          contentContainerStyle={styles.list}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.accent}
+              colors={[colors.accent]}
+            />
+          }
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Text style={styles.emptyEmoji}>
+                {filter === 'done' ? '✅' : filter === 'pending' ? '🎉' : '📋'}
+              </Text>
+              <Text style={styles.emptyText}>
+                {filter === 'done'
+                  ? 'Nada concluído ainda hoje'
+                  : filter === 'pending'
+                  ? 'Tudo feito! Incrível 🏆'
+                  : 'Nenhuma tarefa criada'}
+              </Text>
+              {filter === 'all' && (
+                <Pressable style={styles.emptyBtn} onPress={() => router.push('/(tabs)/create')}>
+                  <Text style={styles.emptyBtnText}>Criar primeira missão</Text>
+                </Pressable>
+              )}
+            </View>
+          }
+        />
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  flex: { flex: 1 },
+  container: { flex: 1, backgroundColor: colors.bgPrimary },
+  header: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+  },
+  heroTitle: {
+    color: colors.text,
+    fontSize: fontSize['2xl'],
+    fontWeight: '800',
+    letterSpacing: -0.5,
+  },
+  motivation: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+    marginTop: 2,
+  },
+  logoutBtn: {
+    paddingVertical: spacing.xs,
+    paddingLeft: spacing.md,
+  },
+  logoutText: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+  },
+  stats: {
+    paddingHorizontal: spacing.lg,
+    gap: spacing.md,
+    paddingVertical: spacing.md,
+  },
+  badges: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  filterRow: {
+    flexDirection: 'row',
+    paddingHorizontal: spacing.lg,
+    gap: spacing.sm,
+    paddingBottom: spacing.md,
+  },
+  filterBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.full,
+    borderWidth: 1,
+    borderColor: colors.border,
+    backgroundColor: colors.bgCard,
+  },
+  filterBtnActive: {
+    borderColor: colors.accent,
+    backgroundColor: colors.accent + '20',
+  },
+  filterText: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
+    fontWeight: '600',
+  },
+  filterTextActive: {
+    color: colors.accent,
+  },
+  list: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing['2xl'],
+  },
+  separator: { height: spacing.sm },
+  empty: {
     alignItems: 'center',
-    gap: 8,
+    paddingVertical: spacing['2xl'],
+    gap: spacing.sm,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  emptyEmoji: { fontSize: 48 },
+  emptyText: {
+    color: colors.textMuted,
+    fontSize: fontSize.md,
+    textAlign: 'center',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  emptyBtn: {
+    marginTop: spacing.sm,
+    backgroundColor: colors.accent,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.sm,
+    borderRadius: 999,
   },
+  emptyBtnText: { color: '#FFF', fontWeight: '600', fontSize: fontSize.sm },
 });

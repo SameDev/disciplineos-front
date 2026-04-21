@@ -1,50 +1,104 @@
-# Welcome to your Expo app 👋
+# MetaQuest — Frontend
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App mobile do **MetaQuest**, sistema pessoal de evolução gamificado para usuários com TDAH.
 
-## Get started
+Construído com Expo (React Native), Expo Router, Zustand, TanStack Query e integração com Spotify.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## Contexto do Projeto
 
-2. Start the app
+Este projeto segue a mesma filosofia do backend — experimento prático baseado nos conceitos de **Fabio Akita** sobre desenvolvimento com IA:
 
-   ```bash
-   npx expo start
-   ```
+- **[Clean Code para Agentes de IA](https://akitaonrails.com/2026/04/20/clean-code-para-agentes-de-ia/)**
+- **[VS Code e o Novo Cartão Perfurado](https://akitaonrails.com/2026/04/11/vs-code-e-o-novo-cartao-perfurado/)**
+- **[Do Zero à Pós-Produção em 1 Semana com IA](https://akitaonrails.com/2026/02/20/do-zero-a-pos-producao-em-1-semana-como-usar-ia-em-projetos-de-verdade-bastidores-do-the-m-akita-chronicles/)**
 
-In the output, you'll find options to open the app in a
+### A Regra
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+> **Todo o código deste projeto é escrito exclusivamente por IA.**
+> O desenvolvedor não digita código manualmente — apenas descreve intenções, valida resultados e toma decisões de produto.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+Isso é um **"build to learn"**: entender na prática os limites e capacidades de agentes de IA como par de programação, aplicando princípios do **Extreme Programming (XP)** — ciclos curtos, entrega incremental, feedback imediato.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## Stack
 
-```bash
-npm run reset-project
+| Camada | Tecnologia |
+|---|---|
+| Framework | Expo (React Native) |
+| Navegação | Expo Router (file-based) |
+| Estado global | Zustand |
+| Data fetching | TanStack React Query |
+| Animações | Reanimated 4 + Gesture Handler v2 |
+| Gráficos | react-native-svg |
+| Auth | JWT via REST API |
+| Música | Spotify OAuth (PKCE manual) |
+| Notificações | expo-notifications |
+
+## Funcionalidades
+
+- **Missões** — CRUD de tarefas/hábitos com dificuldade (easy/medium/hard) e tipo (daily/weekly/one_time)
+- **Gamificação** — XP, level, streak visíveis em tempo real com updates otimistas
+- **Swipe gestures** — editar/deletar com gesto de arrastar (Reanimated 4)
+- **Foco (Pomodoro)** — timer circular SVG com fases configuráveis e notificações em background
+- **Spotify** — OAuth PKCE integrado, controle de playback, polling de estado
+- **Notas** — editor markdown diário/semanal/mensal com auto-save, sincronizado no backend
+
+## Estrutura
+
+```
+app/
+  _layout.tsx          # Bootstrap JWT + StatusBar
+  login.tsx            # Auth screen
+  (tabs)/
+    index.tsx          # Missões (lista + swipe + filtros)
+    focus.tsx          # Modo foco (Pomodoro + Spotify)
+    create.tsx         # Criar/editar tarefa
+    notes.tsx          # Notas markdown
+
+components/
+  task-card.tsx        # Card com swipe gesture
+  ring-timer.tsx       # Timer circular SVG
+  spotify-mini.tsx     # Player + OAuth
+
+hooks/
+  use-auth.ts          # Login/register/logout
+  use-tasks.ts         # CRUD + updates otimistas
+  use-pomodoro.ts      # Timer com fases e notificações
+  use-spotify.ts       # OAuth PKCE + playback polling
+
+stores/
+  auth-store.ts        # Token + user
+  spotify-store.ts     # Playback state
+  notes-store.ts       # Notas com sync de API
+
+lib/
+  api.ts               # HTTP client com JWT
+  spotify.ts           # Spotify API client + token refresh
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## Setup
 
-## Learn more
+```bash
+cp .env.example .env
+# preencha EXPO_PUBLIC_SPOTIFY_CLIENT_ID
 
-To learn more about developing your project with Expo, look at the following resources:
+npm install
+npx expo start
+```
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Redirect URI (Spotify Dashboard)
 
-## Join the community
+| Ambiente | URI |
+|---|---|
+| Expo Go (dev) | `exp://localhost:8081/--/spotify-callback` |
+| Production build | `focus://spotify-callback` |
 
-Join our community of developers creating universal apps.
+## Backend
+Repositório: [SameDev/metaquest-api](https://github.com/SameDev/metaquest-api)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+> *"A IA não substitui o programador. Ela substitui o trabalho repetitivo — o que sobra é o que sempre foi o trabalho real: pensar, decidir, entender."*
