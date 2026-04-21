@@ -13,6 +13,7 @@ import {
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { Pencil, Repeat2, ClipboardList, CalendarDays } from 'lucide-react-native';
 import { useCreateTask, useUpdateTask } from '@/hooks/use-tasks';
 import { createTaskSchema, updateTaskSchema } from '@/types/database';
 import type { Difficulty, TaskType } from '@/types/database';
@@ -108,8 +109,8 @@ export default function CreateTaskScreen() {
         <View style={styles.header}>
           <Text style={styles.headerTitle}>
             {isEditing
-              ? type === 'daily' ? '✏️ Editar Hábito' : '✏️ Editar Tarefa'
-              : type === 'daily' ? '🔄 Novo Hábito' : '📋 Nova Tarefa'}
+              ? type === 'daily' ? 'Editar Hábito' : 'Editar Tarefa'
+              : type === 'daily' ? 'Novo Hábito' : 'Nova Tarefa'}
           </Text>
         </View>
 
@@ -128,7 +129,7 @@ export default function CreateTaskScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }}
               >
-                <Text style={styles.typeIcon}>📋</Text>
+                <ClipboardList size={20} color={type === 'one_time' ? colors.accent : colors.textDim} />
                 <Text style={[styles.typeText, type === 'one_time' && styles.typeTextActive]}>
                   Tarefa
                 </Text>
@@ -144,7 +145,7 @@ export default function CreateTaskScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }}
               >
-                <Text style={styles.typeIcon}>🔄</Text>
+                <Repeat2 size={20} color={type === 'daily' ? colors.streakFire : colors.textDim} />
                 <Text style={[styles.typeText, type === 'daily' && styles.typeTextActiveHabit]}>
                   Hábito
                 </Text>
@@ -160,7 +161,7 @@ export default function CreateTaskScreen() {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 }}
               >
-                <Text style={styles.typeIcon}>📅</Text>
+                <CalendarDays size={20} color={type === 'weekly' ? colors.levelGold : colors.textDim} />
                 <Text style={[styles.typeText, type === 'weekly' && styles.typeTextActiveWeekly]}>
                   Semanal
                 </Text>
@@ -274,7 +275,6 @@ const styles = StyleSheet.create({
   typeOptionActive: { borderColor: colors.accent, backgroundColor: colors.accent + '15' },
   typeOptionActiveHabit: { borderColor: colors.streakFire, backgroundColor: colors.streakFire + '15' },
   typeOptionActiveWeekly: { borderColor: colors.levelGold, backgroundColor: colors.levelGold + '15' },
-  typeIcon: { fontSize: 20 },
   typeText: { fontSize: fontSize.sm, fontWeight: '700', color: colors.textMuted },
   typeTextActive: { color: colors.accent },
   typeTextActiveHabit: { color: colors.streakFire },

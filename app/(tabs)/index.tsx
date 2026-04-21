@@ -10,6 +10,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Trophy, Flame, Zap, CheckCircle, Star, Clipboard } from 'lucide-react-native';
 import { useTasks, useCompleteTask, useDeleteTask } from '@/hooks/use-tasks';
 import { useProfile } from '@/hooks/use-profile';
 import { useAuth } from '@/hooks/use-auth';
@@ -118,7 +119,7 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.heroTitle}>⚔️ MetaQuest</Text>
+            <Text style={styles.heroTitle}>MetaQuest</Text>
             <Text style={styles.motivation}>
               {getMotivation(pendingCount, doneCount)}
             </Text>
@@ -131,15 +132,15 @@ export default function HomeScreen() {
         {/* Stats */}
         <View style={styles.stats}>
           <View style={styles.badges}>
-            <StatBadge icon="🏆" label="Level" value={level} color={colors.levelGold} />
+            <StatBadge icon={<Trophy size={20} color={colors.levelGold} />} label="Level" value={level} color={colors.levelGold} />
             <StatBadge
-              icon="🔥"
+              icon={<Flame size={20} color={colors.streakFire} />}
               label="Streak"
               value={`${profile?.streak ?? 0}d`}
               color={colors.streakFire}
             />
             <StatBadge
-              icon="⚡"
+              icon={<Zap size={20} color={colors.accentGlow} />}
               label="XP Total"
               value={profile?.xp ?? 0}
               color={colors.accentGlow}
@@ -182,14 +183,18 @@ export default function HomeScreen() {
           }
           ListEmptyComponent={
             <View style={styles.empty}>
-              <Text style={styles.emptyEmoji}>
-                {filter === 'done' ? '✅' : filter === 'pending' ? '🎉' : '📋'}
-              </Text>
+              <View style={styles.emptyIcon}>
+                {filter === 'done'
+                  ? <CheckCircle size={48} color={colors.textDim} />
+                  : filter === 'pending'
+                  ? <Star size={48} color={colors.textDim} />
+                  : <Clipboard size={48} color={colors.textDim} />}
+              </View>
               <Text style={styles.emptyText}>
                 {filter === 'done'
                   ? 'Nada concluído ainda hoje'
                   : filter === 'pending'
-                  ? 'Tudo feito! Incrível 🏆'
+                  ? 'Tudo feito! Incrível'
                   : 'Nenhuma tarefa criada'}
               </Text>
               {filter === 'all' && (
@@ -281,7 +286,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing['2xl'],
     gap: spacing.sm,
   },
-  emptyEmoji: { fontSize: 48 },
+  emptyIcon: { marginBottom: spacing.xs },
   emptyText: {
     color: colors.textMuted,
     fontSize: fontSize.md,

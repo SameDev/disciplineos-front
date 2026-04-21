@@ -13,6 +13,7 @@ import {
   Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { Pencil, Trophy, Flame, Zap, LogOut } from 'lucide-react-native';
 import { colors, fontSize, radius, spacing } from '@/constants/theme';
 import { useProfile } from '@/hooks/use-profile';
 import { useUpdateProfile } from '@/hooks/use-update-profile';
@@ -164,7 +165,7 @@ export default function ProfileScreen() {
               </View>
             )}
             <View style={styles.avatarBadge}>
-              <Text style={styles.avatarBadgeText}>✏️</Text>
+              <Pencil size={12} color={colors.textMuted} />
             </View>
           </Pressable>
           <Text style={styles.displayName}>{displayName}</Text>
@@ -175,17 +176,20 @@ export default function ProfileScreen() {
         <View style={styles.card}>
           <View style={styles.statsRow}>
             <View style={styles.stat}>
-              <Text style={styles.statValue}>Nv. {profile.level}</Text>
+              <Trophy size={18} color={colors.levelGold} />
+              <Text style={[styles.statValue, { color: colors.levelGold }]}>Nv. {profile.level}</Text>
               <Text style={styles.statLabel}>Level</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{profile.xp}</Text>
+              <Zap size={18} color={colors.accentGlow} />
+              <Text style={[styles.statValue, { color: colors.accentGlow }]}>{profile.xp}</Text>
               <Text style={styles.statLabel}>XP Total</Text>
             </View>
             <View style={styles.statDivider} />
             <View style={styles.stat}>
-              <Text style={styles.statValue}>{profile.streak}🔥</Text>
+              <Flame size={18} color={colors.streakFire} />
+              <Text style={[styles.statValue, { color: colors.streakFire }]}>{profile.streak}</Text>
               <Text style={styles.statLabel}>Streak</Text>
             </View>
           </View>
@@ -275,6 +279,7 @@ export default function ProfileScreen() {
 
         {/* Danger zone */}
         <Pressable style={styles.logoutBtn} onPress={handleLogout}>
+          <LogOut size={16} color="#ef4444" />
           <Text style={styles.logoutText}>Sair da conta</Text>
         </Pressable>
 
@@ -309,7 +314,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: colors.border,
   },
-  avatarBadgeText: { fontSize: 12 },
   displayName: { color: colors.text, fontSize: fontSize.lg, fontWeight: '700' },
   displayEmail: { color: colors.textMuted, fontSize: fontSize.sm },
 
@@ -359,6 +363,9 @@ const styles = StyleSheet.create({
     borderColor: '#ef4444',
     paddingVertical: spacing.sm + 2,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
   logoutText: { color: '#ef4444', fontWeight: '700', fontSize: fontSize.sm },
 

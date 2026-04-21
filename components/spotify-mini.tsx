@@ -1,4 +1,5 @@
 import { View, Text, Pressable, StyleSheet, Image, ActivityIndicator, Alert, Clipboard } from 'react-native';
+import { Music, SkipBack, SkipForward, Pause, Play, Copy } from 'lucide-react-native';
 import { colors, fontSize, radius, spacing } from '@/constants/theme';
 import { REDIRECT_URI } from '@/hooks/use-spotify';
 import type { SpotifyPlaybackState, SpotifyPlaylist } from '@/lib/spotify';
@@ -40,7 +41,7 @@ export function SpotifyMini({
     return (
       <View style={styles.card}>
         <View style={styles.disconnected}>
-          <Text style={styles.spotifyIcon}>🎵</Text>
+          <Music size={28} color="#1DB954" />
           <View style={styles.disconnectedText}>
             <Text style={styles.disconnectedTitle}>Spotify</Text>
             <Text style={styles.disconnectedSub}>Toque músicas durante o foco</Text>
@@ -71,7 +72,7 @@ export function SpotifyMini({
             }}
           >
             <Text style={styles.redirectUriText} numberOfLines={1}>{REDIRECT_URI}</Text>
-            <Text style={styles.redirectCopy}>Copiar</Text>
+            <Copy size={14} color={colors.accent} />
           </Pressable>
         </View>
       </View>
@@ -86,7 +87,7 @@ export function SpotifyMini({
     <View style={styles.card}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.spotifyConnected}>🎵 Spotify · {displayName}</Text>
+        <Text style={styles.spotifyConnected}>Spotify · {displayName}</Text>
         <Pressable onPress={onDisconnect}>
           <Text style={styles.disconnectText}>Desconectar</Text>
         </Pressable>
@@ -99,7 +100,7 @@ export function SpotifyMini({
             <Image source={{ uri: albumArt }} style={styles.albumArt} />
           ) : (
             <View style={[styles.albumArt, styles.albumArtPlaceholder]}>
-              <Text style={{ fontSize: 20 }}>🎵</Text>
+              <Music size={20} color={colors.textDim} />
             </View>
           )}
 
@@ -112,16 +113,18 @@ export function SpotifyMini({
 
           <View style={styles.controls}>
             <Pressable style={styles.ctrlBtn} onPress={onPrev}>
-              <Text style={styles.ctrlIcon}>⏮</Text>
+              <SkipBack size={18} color={colors.textMuted} />
             </Pressable>
             <Pressable
               style={[styles.ctrlBtn, styles.playBtn]}
               onPress={() => (isPlaying ? onPause() : onPlay())}
             >
-              <Text style={styles.playIcon}>{isPlaying ? '⏸' : '▶'}</Text>
+              {isPlaying
+                ? <Pause size={14} color="#FFF" />
+                : <Play size={14} color="#FFF" />}
             </Pressable>
             <Pressable style={styles.ctrlBtn} onPress={onNext}>
-              <Text style={styles.ctrlIcon}>⏭</Text>
+              <SkipForward size={18} color={colors.textMuted} />
             </Pressable>
           </View>
         </View>
@@ -177,7 +180,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
-  spotifyIcon: { fontSize: 28 },
   disconnectedText: { flex: 1 },
   disconnectedTitle: {
     color: colors.text,
@@ -225,11 +227,6 @@ const styles = StyleSheet.create({
     color: colors.accentGlow,
     fontSize: fontSize.xs,
     fontFamily: 'monospace',
-  },
-  redirectCopy: {
-    color: colors.accent,
-    fontSize: fontSize.xs,
-    fontWeight: '700',
   },
   connectText: {
     color: '#FFF',
@@ -285,19 +282,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ctrlIcon: {
-    fontSize: 18,
-    color: colors.textMuted,
-  },
   playBtn: {
     width: 36,
     height: 36,
     borderRadius: 18,
     backgroundColor: '#1DB954',
-  },
-  playIcon: {
-    fontSize: 14,
-    color: '#FFF',
   },
   noTrack: { alignItems: 'center', paddingVertical: spacing.sm },
   noTrackText: { color: colors.textMuted, fontSize: fontSize.sm },

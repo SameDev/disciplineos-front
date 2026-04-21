@@ -1,6 +1,7 @@
 import { Tabs } from 'expo-router';
 import { colors, fontSize } from '@/constants/theme';
-import { Platform, Text } from 'react-native';
+import { Platform } from 'react-native';
+import { ListTodo, Target, PlusCircle, BookOpen, User } from 'lucide-react-native';
 
 export default function TabLayout() {
   return (
@@ -27,35 +28,35 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Missões',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>⚔️</Text>,
+          tabBarIcon: ({ color }) => <ListTodo size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="focus"
         options={{
           title: 'Foco',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>🎯</Text>,
+          tabBarIcon: ({ color }) => <Target size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="create"
         options={{
           title: 'Nova',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>➕</Text>,
+          tabBarIcon: ({ color }) => <PlusCircle size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="notes"
         options={{
           title: 'Notas',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>📝</Text>,
+          tabBarIcon: ({ color }) => <BookOpen size={22} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Perfil',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20, color }}>👤</Text>,
+          tabBarIcon: ({ color }) => <User size={22} color={color} />,
         }}
       />
     </Tabs>

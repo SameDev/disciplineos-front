@@ -1,20 +1,18 @@
 import { View, Text, StyleSheet } from 'react-native';
 import { colors, fontSize, radius, spacing } from '@/constants/theme';
+import type { ReactNode } from 'react';
 
 interface StatBadgeProps {
-  icon: string;
+  icon: ReactNode;
   label: string;
   value: string | number;
   color?: string;
 }
 
-/**
- * @description Compact stat badge with emoji icon (Level, Streak, etc).
- */
 export function StatBadge({ icon, label, value, color = colors.text }: StatBadgeProps) {
   return (
     <View style={styles.container}>
-      <Text style={styles.icon}>{icon}</Text>
+      {icon}
       <View>
         <Text style={[styles.value, { color }]}>{value}</Text>
         <Text style={styles.label}>{label}</Text>
@@ -34,9 +32,6 @@ const styles = StyleSheet.create({
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-  },
-  icon: {
-    fontSize: fontSize.xl,
   },
   value: {
     fontSize: fontSize.lg,

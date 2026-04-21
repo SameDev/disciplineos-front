@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
+import { Target, Settings, RotateCcw, Play, Pause, SkipForward } from 'lucide-react-native';
 import { usePomodoro, DEFAULT_SETTINGS, type PomodoroPhase, type PomodoroSettings } from '@/hooks/use-pomodoro';
 import { useSpotify } from '@/hooks/use-spotify';
 import { spotifyApi, type SpotifyPlaylist } from '@/lib/spotify';
@@ -98,7 +99,7 @@ export default function FocusScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>🎯 Modo Foco</Text>
+            <Text style={styles.title}>Modo Foco</Text>
             <Text style={styles.subtitle}>
               {pomodoro.totalFocusSessions > 0
                 ? `${pomodoro.totalFocusSessions} sessão${pomodoro.totalFocusSessions > 1 ? 'ões' : ''} hoje`
@@ -109,7 +110,7 @@ export default function FocusScreen() {
             setDraftSettings(settings);
             setShowSettings(true);
           }}>
-            <Text style={styles.settingsIcon}>⚙️</Text>
+            <Settings size={22} color={colors.textMuted} />
           </Pressable>
         </View>
 
@@ -155,20 +156,25 @@ export default function FocusScreen() {
         {/* Controls */}
         <View style={styles.controls}>
           <Pressable style={styles.secondaryBtn} onPress={handleReset}>
-            <Text style={styles.secondaryBtnText}>↺ Reset</Text>
+            <RotateCcw size={18} color={colors.textMuted} />
+            <Text style={styles.secondaryBtnText}>Reset</Text>
           </Pressable>
 
           <Pressable
             style={[styles.mainBtn, { backgroundColor: phaseColor }]}
             onPress={pomodoro.isRunning ? handlePause : handleStart}
           >
+            {pomodoro.isRunning
+              ? <Pause size={20} color="#FFF" />
+              : <Play size={20} color="#FFF" />}
             <Text style={styles.mainBtnText}>
-              {pomodoro.isRunning ? '⏸ Pausar' : '▶ Iniciar'}
+              {pomodoro.isRunning ? 'Pausar' : 'Iniciar'}
             </Text>
           </Pressable>
 
           <Pressable style={styles.secondaryBtn} onPress={handleSkip}>
-            <Text style={styles.secondaryBtnText}>⏭ Pular</Text>
+            <SkipForward size={18} color={colors.textMuted} />
+            <Text style={styles.secondaryBtnText}>Pular</Text>
           </Pressable>
         </View>
 
@@ -176,10 +182,10 @@ export default function FocusScreen() {
         <View style={[styles.tip, { borderColor: phaseColor + '40' }]}>
           <Text style={styles.tipText}>
             {pomodoro.phase === 'focus'
-              ? '💡 Feche notificações. Uma tarefa por vez. Você consegue.'
+              ? 'Feche notificações. Uma tarefa por vez. Você consegue.'
               : pomodoro.phase === 'short_break'
-              ? '☕ Levante, tome água, respire. Você merece essa pausa.'
-              : '🌿 Pausa longa — saia da tela. Seu cérebro agradece.'}
+              ? 'Levante, tome água, respire. Você merece essa pausa.'
+              : 'Pausa longa — saia da tela. Seu cérebro agradece.'}
           </Text>
         </View>
 
@@ -203,7 +209,7 @@ export default function FocusScreen() {
       <Modal visible={showSettings} transparent animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalCard}>
-            <Text style={styles.modalTitle}>⚙️ Configurações</Text>
+            <Text style={styles.modalTitle}>Configurações</Text>
 
             <SettingField
               label="Foco (minutos)"
@@ -356,12 +362,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     alignItems: 'center',
+    gap: 4,
   },
   secondaryBtnText: {
     color: colors.textMuted,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
+  settingsIcon: {},
   tip: {
     backgroundColor: colors.bgCard,
     borderRadius: radius.md,

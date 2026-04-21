@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { Pencil, Trash2, Repeat2, Check, Play } from 'lucide-react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -122,7 +123,7 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
       {/* Left action (swipe right → edit) */}
       <Animated.View style={[styles.actionLeft, leftActionOpacity]}>
         <Pressable style={styles.editAction} onPress={handleEdit}>
-          <Text style={styles.actionIcon}>✏️</Text>
+          <Pencil size={22} color={colors.accent} />
           <Text style={styles.actionLabel}>Editar</Text>
         </Pressable>
       </Animated.View>
@@ -130,7 +131,7 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
       {/* Right action (swipe left → delete) */}
       <Animated.View style={[styles.actionRight, rightActionOpacity]}>
         <Pressable style={styles.deleteAction} onPress={handleDelete}>
-          <Text style={styles.actionIcon}>🗑️</Text>
+          <Trash2 size={22} color={colors.danger} />
           <Text style={styles.actionLabelDanger}>Excluir</Text>
         </Pressable>
       </Animated.View>
@@ -140,7 +141,7 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
           <View style={styles.content}>
             <View style={styles.header}>
               <View style={styles.titleRow}>
-                {isHabit && <Text style={styles.habitIcon}>🔄</Text>}
+                {isHabit && <Repeat2 size={14} color={colors.textMuted} />}
                 <Text
                   style={[styles.title, task.completed_today && styles.titleDone]}
                   numberOfLines={2}
@@ -172,9 +173,9 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
             onPress={handleComplete}
             disabled={task.completed_today || isCompleting}
           >
-            <Text style={[styles.btnText, task.completed_today && styles.completedText]}>
-              {task.completed_today ? '✓' : '▶'}
-            </Text>
+            {task.completed_today
+              ? <Check size={20} color={colors.success} />
+              : <Play size={18} color="#FFF" />}
           </Pressable>
 
           {showXP && (
@@ -220,9 +221,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
   },
-  actionIcon: {
-    fontSize: 22,
-  },
   actionLabel: {
     color: colors.accent,
     fontSize: fontSize.xs,
@@ -258,9 +256,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-  },
-  habitIcon: {
-    fontSize: 14,
   },
   title: {
     color: colors.text,
@@ -319,14 +314,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success + '30',
     borderWidth: 1,
     borderColor: colors.success,
-  },
-  btnText: {
-    color: '#FFFFFF',
-    fontSize: fontSize.lg,
-    fontWeight: '700',
-  },
-  completedText: {
-    color: colors.success,
   },
   xpPopup: {
     position: 'absolute',

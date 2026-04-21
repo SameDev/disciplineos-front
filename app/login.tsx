@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { Shield } from 'lucide-react-native';
 import { useAuth } from '@/hooks/use-auth';
 import { colors, fontSize, radius, spacing } from '@/constants/theme';
 
@@ -61,7 +62,7 @@ export default function LoginScreen() {
     >
       <View style={styles.content}>
         <View style={styles.hero}>
-          <Text style={styles.emoji}>⚔️</Text>
+          <Shield size={64} color={colors.accent} />
           <Text style={styles.title}>MetaQuest</Text>
           <Text style={styles.subtitle}>Gamifique suas tarefas diárias</Text>
         </View>
@@ -136,9 +137,6 @@ const styles = StyleSheet.create({
   hero: {
     alignItems: 'center',
     gap: spacing.sm,
-  },
-  emoji: {
-    fontSize: 64,
   },
   title: {
     color: colors.text,
