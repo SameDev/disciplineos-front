@@ -6,6 +6,8 @@ export type TaskType = 'daily' | 'weekly' | 'one_time';
 export interface User {
   id: string;
   email: string;
+  name: string | null;
+  avatarUrl: string | null;
   level: number;
   xp: number;
   streak: number;
