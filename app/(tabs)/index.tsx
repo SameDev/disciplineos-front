@@ -10,6 +10,7 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Trophy, Flame, Zap, CheckCircle, Star, Clipboard } from 'lucide-react-native';
 import { useTasks, useCompleteTask, useDeleteTask } from '@/hooks/use-tasks';
 import { useProfile } from '@/hooks/use-profile';
@@ -93,8 +94,6 @@ export default function HomeScreen() {
 
     const pending = tasks.filter((t) => !t.completed_today);
     const done = tasks.filter((t) => t.completed_today);
-
-    // pending first, done at bottom
     const sorted = [...pending, ...done];
 
     let filtered: TaskWithCompletion[];
@@ -105,13 +104,14 @@ export default function HomeScreen() {
     return { filtered, pendingCount: pending.length, doneCount: done.length };
   }, [tasks, filter]);
 
-  const renderItem = useCallback(({ item }: { item: TaskWithCompletion }) => (
+  const renderItem = useCallback(({ item, index }: { item: TaskWithCompletion; index: number }) => (
     <TaskCard
       task={item}
       onComplete={handleComplete}
       onEdit={handleEdit}
       onDelete={handleDelete}
       isCompleting={completingTaskId.current === item.id}
+      index={index}
     />
   ), [handleComplete, handleEdit, handleDelete]);
 
@@ -120,8 +120,9 @@ export default function HomeScreen() {
   return (
     <GestureHandlerRootView style={styles.flex}>
       <SafeAreaView style={styles.container} edges={['top']}>
+
         {/* Header */}
-        <View style={styles.header}>
+        <Animated.View entering={FadeInDown.delay(0).springify().damping(18)} style={styles.header}>
           <View>
             <Text style={styles.heroTitle}>DisciplineOS</Text>
             <Text style={styles.motivation}>
@@ -131,44 +132,56 @@ export default function HomeScreen() {
           <Pressable onPress={signOut} style={styles.logoutBtn}>
             <Text style={styles.logoutText}>Sair</Text>
           </Pressable>
-        </View>
+        </Animated.View>
 
         {/* Stats */}
-        <View style={styles.stats}>
+        <Animated.View entering={FadeInDown.delay(80).springify().damping(18)} style={styles.stats}>
           <View style={styles.badges}>
-            <StatBadge icon={<Trophy size={20} color={colors.levelGold} />} label="Level" value={level} color={colors.levelGold} />
             <StatBadge
-              icon={<Flame size={20} color={colors.streakFire} />}
+              icon={<Trophy size={18} color={colors.levelGold} />}
+              label="Level"
+              value={level}
+              color={colors.levelGold}
+              delay={120}
+            />
+            <StatBadge
+              icon={<Flame size={18} color={colors.streakFire} />}
               label="Streak"
               value={`${profile?.streak ?? 0}d`}
               color={colors.streakFire}
+              delay={180}
             />
             <StatBadge
-              icon={<Zap size={20} color={colors.accentGlow} />}
-              label="XP Total"
+              icon={<Zap size={18} color={colors.accentGlow} />}
+              label="XP"
               value={profile?.xp ?? 0}
               color={colors.accentGlow}
+              delay={240}
             />
           </View>
           <XPBar currentXP={xpProgress} maxXP={xpNeeded} level={level} />
-        </View>
+        </Animated.View>
 
         {/* Filters */}
-        <View style={styles.filterRow}>
-          {FILTERS.map((f) => (
-            <Pressable
+        <Animated.View entering={FadeInUp.delay(160).springify().damping(18)} style={styles.filterRow}>
+          {FILTERS.map((f, i) => (
+            <Animated.View
               key={f.key}
-              style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
-              onPress={() => setFilter(f.key)}
+              entering={FadeInDown.delay(200 + i * 60).springify().damping(16)}
             >
-              <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
-                {f.label}
-                {f.key === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}
-                {f.key === 'done' && doneCount > 0 ? ` (${doneCount})` : ''}
-              </Text>
-            </Pressable>
+              <Pressable
+                style={[styles.filterBtn, filter === f.key && styles.filterBtnActive]}
+                onPress={() => setFilter(f.key)}
+              >
+                <Text style={[styles.filterText, filter === f.key && styles.filterTextActive]}>
+                  {f.label}
+                  {f.key === 'pending' && pendingCount > 0 ? ` (${pendingCount})` : ''}
+                  {f.key === 'done' && doneCount > 0 ? ` (${doneCount})` : ''}
+                </Text>
+              </Pressable>
+            </Animated.View>
           ))}
-        </View>
+        </Animated.View>
 
         {/* Task list */}
         <FlatList
@@ -186,27 +199,30 @@ export default function HomeScreen() {
             />
           }
           ListEmptyComponent={
-            <View style={styles.empty}>
+            <Animated.View entering={FadeInDown.delay(100).springify()} style={styles.empty}>
               <View style={styles.emptyIcon}>
                 {filter === 'done'
-                  ? <CheckCircle size={48} color={colors.textDim} />
+                  ? <CheckCircle size={52} color={colors.textDim} />
                   : filter === 'pending'
-                  ? <Star size={48} color={colors.textDim} />
-                  : <Clipboard size={48} color={colors.textDim} />}
+                  ? <Star size={52} color={colors.textDim} />
+                  : <Clipboard size={52} color={colors.textDim} />}
               </View>
-              <Text style={styles.emptyText}>
+              <Text style={styles.emptyTitle}>
                 {filter === 'done'
                   ? 'Nada concluído ainda hoje'
                   : filter === 'pending'
                   ? 'Tudo feito! Incrível'
-                  : 'Nenhuma tarefa criada'}
+                  : 'Nenhuma missão criada'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {filter === 'all' ? 'Comece pequeno. Uma missão por dia.' : ''}
               </Text>
               {filter === 'all' && (
                 <Pressable style={styles.emptyBtn} onPress={() => router.push('/(tabs)/create')}>
                   <Text style={styles.emptyBtnText}>Criar primeira missão</Text>
                 </Pressable>
               )}
-            </View>
+            </Animated.View>
           }
         />
       </SafeAreaView>
@@ -235,13 +251,14 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     fontSize: fontSize.sm,
     marginTop: 2,
+    fontWeight: '500',
   },
   logoutBtn: {
     paddingVertical: spacing.xs,
     paddingLeft: spacing.md,
   },
   logoutText: {
-    color: colors.textMuted,
+    color: colors.textDim,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
@@ -271,6 +288,11 @@ const styles = StyleSheet.create({
   filterBtnActive: {
     borderColor: colors.accent,
     backgroundColor: colors.accent + '20',
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
   },
   filterText: {
     color: colors.textMuted,
@@ -279,6 +301,7 @@ const styles = StyleSheet.create({
   },
   filterTextActive: {
     color: colors.accent,
+    fontWeight: '700',
   },
   list: {
     paddingHorizontal: spacing.lg,
@@ -290,18 +313,29 @@ const styles = StyleSheet.create({
     paddingVertical: spacing['2xl'],
     gap: spacing.sm,
   },
-  emptyIcon: { marginBottom: spacing.xs },
-  emptyText: {
-    color: colors.textMuted,
+  emptyIcon: { marginBottom: spacing.sm, opacity: 0.4 },
+  emptyTitle: {
+    color: colors.text,
     fontSize: fontSize.md,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
+  emptySubtitle: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
     textAlign: 'center',
   },
   emptyBtn: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     backgroundColor: colors.accent,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-    borderRadius: 999,
+    paddingHorizontal: spacing.xl,
+    paddingVertical: spacing.sm + 2,
+    borderRadius: radius.full,
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  emptyBtnText: { color: '#FFF', fontWeight: '600', fontSize: fontSize.sm },
+  emptyBtnText: { color: '#FFF', fontWeight: '700', fontSize: fontSize.sm },
 });

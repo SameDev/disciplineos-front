@@ -1,12 +1,20 @@
 import { Tabs } from 'expo-router';
-import { colors, fontSize } from '@/constants/theme';
-import { Platform } from 'react-native';
+import { colors, fontSize, radius } from '@/constants/theme';
+import { Platform, View, StyleSheet } from 'react-native';
 import { ListTodo, Target, PlusCircle, BookOpen, User } from 'lucide-react-native';
+
+function TabIcon({ icon, focused, color }: { icon: React.ReactNode; focused: boolean; color: string }) {
+  return (
+    <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+      {icon}
+    </View>
+  );
+}
 
 export default function TabLayout() {
   return (
     <Tabs
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textDim,
@@ -22,43 +30,38 @@ export default function TabLayout() {
           fontSize: fontSize.xs,
           fontWeight: '600',
         },
-      }}
+        tabBarIcon: ({ color, focused }) => {
+          const icons: Record<string, React.ReactNode> = {
+            index: <ListTodo size={22} color={color} />,
+            focus: <Target size={22} color={color} />,
+            create: <PlusCircle size={22} color={color} />,
+            notes: <BookOpen size={22} color={color} />,
+            profile: <User size={22} color={color} />,
+          };
+          return (
+            <TabIcon icon={icons[route.name]} focused={focused} color={color} />
+          );
+        },
+      })}
     >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Missões',
-          tabBarIcon: ({ color }) => <ListTodo size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="focus"
-        options={{
-          title: 'Foco',
-          tabBarIcon: ({ color }) => <Target size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="create"
-        options={{
-          title: 'Nova',
-          tabBarIcon: ({ color }) => <PlusCircle size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="notes"
-        options={{
-          title: 'Notas',
-          tabBarIcon: ({ color }) => <BookOpen size={22} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Perfil',
-          tabBarIcon: ({ color }) => <User size={22} color={color} />,
-        }}
-      />
+      <Tabs.Screen name="index" options={{ title: 'Missões' }} />
+      <Tabs.Screen name="focus" options={{ title: 'Foco' }} />
+      <Tabs.Screen name="create" options={{ title: 'Nova' }} />
+      <Tabs.Screen name="notes" options={{ title: 'Notas' }} />
+      <Tabs.Screen name="profile" options={{ title: 'Perfil' }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrap: {
+    width: 36,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radius.md,
+  },
+  iconWrapActive: {
+    backgroundColor: colors.accent + '20',
+  },
+});

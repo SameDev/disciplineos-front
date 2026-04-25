@@ -8,7 +8,14 @@ import {
   Modal,
   TextInput,
   Alert,
+  Platform,
 } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { Target, Settings, RotateCcw, Play, Pause, SkipForward } from 'lucide-react-native';
@@ -41,6 +48,10 @@ export default function FocusScreen() {
   const spotify = useSpotify();
 
   const phaseColor = PHASE_COLORS[pomodoro.phase];
+  const mainBtnScale = useSharedValue(1);
+  const mainBtnStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: mainBtnScale.value }],
+  }));
 
   // Load focus playlists when Spotify connects
   useEffect(() => {
@@ -150,6 +161,7 @@ export default function FocusScreen() {
             phaseEmoji={pomodoro.phaseEmoji}
             round={pomodoro.round}
             roundsTotal={settings.roundsBeforeLongBreak}
+            isRunning={pomodoro.isRunning}
           />
         </View>
 
@@ -160,17 +172,24 @@ export default function FocusScreen() {
             <Text style={styles.secondaryBtnText}>Reset</Text>
           </Pressable>
 
-          <Pressable
-            style={[styles.mainBtn, { backgroundColor: phaseColor }]}
-            onPress={pomodoro.isRunning ? handlePause : handleStart}
-          >
-            {pomodoro.isRunning
-              ? <Pause size={20} color="#FFF" />
-              : <Play size={20} color="#FFF" />}
-            <Text style={styles.mainBtnText}>
-              {pomodoro.isRunning ? 'Pausar' : 'Iniciar'}
-            </Text>
-          </Pressable>
+          <Animated.View style={[styles.mainBtnWrap, mainBtnStyle]}>
+            <Pressable
+              style={[
+                styles.mainBtn,
+                { backgroundColor: phaseColor, shadowColor: phaseColor },
+              ]}
+              onPress={pomodoro.isRunning ? handlePause : handleStart}
+              onPressIn={() => { mainBtnScale.value = withSpring(0.93, { damping: 15 }); }}
+              onPressOut={() => { mainBtnScale.value = withSpring(1, { damping: 10 }); }}
+            >
+              {pomodoro.isRunning
+                ? <Pause size={22} color="#FFF" />
+                : <Play size={22} color="#FFF" fill="#FFF" />}
+              <Text style={styles.mainBtnText}>
+                {pomodoro.isRunning ? 'Pausar' : 'Iniciar'}
+              </Text>
+            </Pressable>
+          </Animated.View>
 
           <Pressable style={styles.secondaryBtn} onPress={handleSkip}>
             <SkipForward size={18} color={colors.textMuted} />
@@ -343,11 +362,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.md,
   },
+  mainBtnWrap: {
+    flex: 1,
+  },
   mainBtn: {
     flex: 1,
     paddingVertical: spacing.md + 4,
     borderRadius: radius.lg,
     alignItems: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.45,
+    shadowRadius: 16,
+    elevation: 8,
   },
   mainBtnText: {
     color: '#FFF',
@@ -369,7 +395,6 @@ const styles = StyleSheet.create({
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
-  settingsIcon: {},
   tip: {
     backgroundColor: colors.bgCard,
     borderRadius: radius.md,

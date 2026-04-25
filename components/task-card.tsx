@@ -8,6 +8,7 @@ import Animated, {
   withTiming,
   withSpring,
   runOnJS,
+  FadeInDown,
 } from 'react-native-reanimated';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import * as Haptics from 'expo-haptics';
@@ -21,17 +22,19 @@ interface TaskCardProps {
   onEdit: (task: TaskWithCompletion) => void;
   onDelete: (task: TaskWithCompletion) => void;
   isCompleting: boolean;
+  index?: number;
 }
 
 const SWIPE_THRESHOLD = 60;
 const ACTION_WIDTH = 130;
 
-export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: TaskCardProps) {
+export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting, index = 0 }: TaskCardProps) {
   const [showXP, setShowXP] = useState(false);
   const xpOpacity = useSharedValue(0);
   const xpTranslateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
+  const btnScale = useSharedValue(1);
 
   const diffColor = difficultyColors[task.difficulty] ?? colors.textMuted;
   const diffLabel = difficultyLabels[task.difficulty] ?? task.difficulty;
@@ -69,6 +72,10 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
     opacity: translateX.value < -20 ? 1 : 0,
   }));
 
+  const btnStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: btnScale.value }],
+  }));
+
   const handleComplete = useCallback(() => {
     if (task.completed_today || isCompleting) return;
     closeSwipe();
@@ -77,18 +84,23 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
     setShowXP(true);
     xpOpacity.value = withSequence(
       withTiming(1, { duration: 200 }),
-      withTiming(1, { duration: 600 }),
+      withTiming(1, { duration: 700 }),
       withTiming(0, { duration: 400 }),
     );
     xpTranslateY.value = withSequence(
       withTiming(0, { duration: 0 }),
-      withTiming(-40, { duration: 1200 }),
+      withTiming(-48, { duration: 1300 }),
     );
-    scale.value = withSequence(withSpring(0.95), withSpring(1));
+    scale.value = withSequence(withSpring(0.96), withSpring(1, { damping: 10 }));
+    btnScale.value = withSequence(
+      withSpring(0.7, { damping: 8 }),
+      withSpring(1.2, { damping: 10 }),
+      withSpring(1, { damping: 12 }),
+    );
     setTimeout(() => runOnJS(setShowXP)(false), 1400);
 
     onComplete(task);
-  }, [task, isCompleting, onComplete, closeSwipe, xpOpacity, xpTranslateY, scale]);
+  }, [task, isCompleting, onComplete, closeSwipe, xpOpacity, xpTranslateY, scale, btnScale]);
 
   const handleEdit = useCallback(() => {
     closeSwipe();
@@ -101,14 +113,10 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     Alert.alert(
       'Excluir tarefa',
-      `"${task.title}" será removida permanentemente.`,
+      `"${task.title}" será removida e o XP ganho será devolvido.`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        {
-          text: 'Excluir',
-          style: 'destructive',
-          onPress: () => onDelete(task),
-        },
+        { text: 'Excluir', style: 'destructive', onPress: () => onDelete(task) },
       ],
     );
   }, [task, onDelete, closeSwipe]);
@@ -119,8 +127,11 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
   }));
 
   return (
-    <View style={styles.wrapper}>
-      {/* Left action (swipe right → edit) */}
+    <Animated.View
+      entering={FadeInDown.delay(index * 60).springify().damping(16)}
+      style={styles.wrapper}
+    >
+      {/* Left action */}
       <Animated.View style={[styles.actionLeft, leftActionOpacity]}>
         <Pressable style={styles.editAction} onPress={handleEdit}>
           <Pencil size={22} color={colors.accent} />
@@ -128,7 +139,7 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
         </Pressable>
       </Animated.View>
 
-      {/* Right action (swipe left → delete) */}
+      {/* Right action */}
       <Animated.View style={[styles.actionRight, rightActionOpacity]}>
         <Pressable style={styles.deleteAction} onPress={handleDelete}>
           <Trash2 size={22} color={colors.danger} />
@@ -137,11 +148,14 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
       </Animated.View>
 
       <GestureDetector gesture={panGesture}>
-        <Animated.View style={[styles.card, cardStyle]}>
+        <Animated.View style={[styles.card, cardStyle, task.completed_today && styles.cardDone]}>
+          {/* Difficulty accent strip */}
+          <View style={[styles.diffStrip, { backgroundColor: diffColor }]} />
+
           <View style={styles.content}>
             <View style={styles.header}>
               <View style={styles.titleRow}>
-                {isHabit && <Repeat2 size={14} color={colors.textMuted} />}
+                {isHabit && <Repeat2 size={13} color={colors.textDim} />}
                 <Text
                   style={[styles.title, task.completed_today && styles.titleDone]}
                   numberOfLines={2}
@@ -149,7 +163,7 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
                   {task.title}
                 </Text>
               </View>
-              <View style={[styles.diffBadge, { backgroundColor: diffColor + '20', borderColor: diffColor }]}>
+              <View style={[styles.diffBadge, { backgroundColor: diffColor + '18', borderColor: diffColor + '50' }]}>
                 <Text style={[styles.diffText, { color: diffColor }]}>{diffLabel}</Text>
               </View>
             </View>
@@ -157,9 +171,9 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
               <Text style={[styles.xpLabel, task.completed_today && styles.xpDone]}>
                 +{xpReward} XP
               </Text>
-              {isHabit && (
+              {isHabit && (task.month_completions ?? 0) > 0 && (
                 <Text style={styles.monthCount}>
-                  {task.month_completions ?? 0} este mês
+                  {task.month_completions}× este mês
                 </Text>
               )}
               {task.completed_today && (
@@ -168,24 +182,40 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting }: T
             </View>
           </View>
 
-          <Pressable
-            style={[styles.completeBtn, task.completed_today && styles.completedBtn]}
-            onPress={handleComplete}
-            disabled={task.completed_today || isCompleting}
-          >
-            {task.completed_today
-              ? <Check size={20} color={colors.success} />
-              : <Play size={18} color="#FFF" />}
-          </Pressable>
+          <Animated.View style={btnStyle}>
+            <Pressable
+              style={[
+                styles.completeBtn,
+                { shadowColor: diffColor },
+                task.completed_today && styles.completedBtn,
+              ]}
+              onPress={handleComplete}
+              onPressIn={() => {
+                if (!task.completed_today) {
+                  btnScale.value = withSpring(0.88, { damping: 12 });
+                }
+              }}
+              onPressOut={() => {
+                if (!task.completed_today) {
+                  btnScale.value = withSpring(1, { damping: 10 });
+                }
+              }}
+              disabled={task.completed_today || isCompleting}
+            >
+              {task.completed_today
+                ? <Check size={20} color={colors.success} />
+                : <Play size={18} color="#FFF" fill="#FFF" />}
+            </Pressable>
+          </Animated.View>
 
           {showXP && (
             <Animated.View style={[styles.xpPopup, xpAnimStyle]}>
-              <Text style={styles.xpPopupText}>+{xpReward} XP</Text>
+              <Text style={[styles.xpPopupText, { color: diffColor }]}>+{xpReward} XP</Text>
             </Animated.View>
           )}
         </Animated.View>
       </GestureDetector>
-    </View>
+    </Animated.View>
   );
 }
 
@@ -213,38 +243,33 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     paddingRight: spacing.md,
   },
-  editAction: {
-    alignItems: 'center',
-    gap: 2,
-  },
-  deleteAction: {
-    alignItems: 'center',
-    gap: 2,
-  },
-  actionLabel: {
-    color: colors.accent,
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-  },
-  actionLabelDanger: {
-    color: colors.danger,
-    fontSize: fontSize.xs,
-    fontWeight: '700',
-  },
+  editAction: { alignItems: 'center', gap: 2 },
+  deleteAction: { alignItems: 'center', gap: 2 },
+  actionLabel: { color: colors.accent, fontSize: fontSize.xs, fontWeight: '700' },
+  actionLabelDanger: { color: colors.danger, fontSize: fontSize.xs, fontWeight: '700' },
   card: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.bgCard,
     borderRadius: radius.lg,
-    padding: spacing.md,
     borderWidth: 1,
     borderColor: colors.border,
+    overflow: 'hidden',
     position: 'relative',
-    overflow: 'visible',
+  },
+  cardDone: {
+    opacity: 0.7,
+  },
+  diffStrip: {
+    width: 4,
+    alignSelf: 'stretch',
+    opacity: 0.8,
   },
   content: {
     flex: 1,
     gap: spacing.xs,
+    padding: spacing.md,
+    paddingLeft: spacing.sm,
   },
   header: {
     flexDirection: 'row',
@@ -287,20 +312,11 @@ const styles = StyleSheet.create({
   xpLabel: {
     color: colors.accentGlow,
     fontSize: fontSize.xs,
-    fontWeight: '500',
-  },
-  xpDone: {
-    color: colors.textDim,
-  },
-  monthCount: {
-    color: colors.textMuted,
-    fontSize: fontSize.xs,
-  },
-  doneTag: {
-    color: colors.success,
-    fontSize: fontSize.xs,
     fontWeight: '600',
   },
+  xpDone: { color: colors.textDim },
+  monthCount: { color: colors.textMuted, fontSize: fontSize.xs },
+  doneTag: { color: colors.success, fontSize: fontSize.xs, fontWeight: '600' },
   completeBtn: {
     width: 48,
     height: 48,
@@ -308,22 +324,30 @@ const styles = StyleSheet.create({
     backgroundColor: colors.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: spacing.md,
+    marginRight: spacing.md,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.5,
+    shadowRadius: 8,
+    elevation: 4,
   },
   completedBtn: {
-    backgroundColor: colors.success + '30',
-    borderWidth: 1,
+    backgroundColor: colors.success + '20',
+    borderWidth: 1.5,
     borderColor: colors.success,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   xpPopup: {
     position: 'absolute',
-    right: spacing.md,
-    top: -10,
+    right: spacing.lg,
+    top: -8,
     zIndex: 10,
   },
   xpPopupText: {
-    color: colors.accentGlow,
-    fontSize: fontSize.lg,
-    fontWeight: '800',
+    fontSize: fontSize.xl,
+    fontWeight: '900',
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
 });
