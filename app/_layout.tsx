@@ -49,11 +49,11 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!ready || isLoading) return;
 
-    const inLoginRoute = segments[0] === 'login';
+    const inPublicRoute = segments[0] === 'login' || segments[0] === 'forgot-password';
 
-    if (!user && !inLoginRoute) {
+    if (!user && !inPublicRoute) {
       router.replace('/login');
-    } else if (user && inLoginRoute) {
+    } else if (user && inPublicRoute) {
       router.replace('/(tabs)');
     }
   }, [user, segments, isLoading, ready, router]);
@@ -76,6 +76,7 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
           <Stack.Screen name="login" />
+          <Stack.Screen name="forgot-password" />
         </Stack>
         <StatusBar style="light" backgroundColor={colors.bgPrimary} />
       </AuthGate>
