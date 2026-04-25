@@ -294,7 +294,7 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: colors.bgPrimary },
   center: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.bgPrimary },
-  scroll: { padding: spacing.lg, paddingTop: 56, gap: spacing.md, paddingBottom: 40 },
+  scroll: { padding: spacing.lg, paddingTop: 56, gap: spacing.md, paddingBottom: 110 },
   title: { color: colors.text, fontSize: fontSize.xl, fontWeight: '700', marginBottom: spacing.sm },
 
   avatarSection: { alignItems: 'center', gap: spacing.xs, marginBottom: spacing.sm },

@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   diffXP: { fontSize: fontSize.xs, fontWeight: '500' },
-  actions: { flexDirection: 'row', gap: spacing.md, paddingVertical: spacing.lg },
+  actions: { flexDirection: 'row', gap: spacing.md, paddingTop: spacing.lg, paddingBottom: 110 },
   cancelBtn: {
     flex: 1,
     paddingVertical: spacing.md,

@@ -1,23 +1,25 @@
 import { useEffect } from 'react';
 import { Tabs } from 'expo-router';
-import { colors, radius } from '@/constants/theme';
+import { colors } from '@/constants/theme';
 import { Platform, View, StyleSheet } from 'react-native';
 import { ListTodo, Target, PlusCircle, BookOpen, User } from 'lucide-react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withSpring } from 'react-native-reanimated';
 
 function TabIcon({ icon, focused }: { icon: React.ReactNode; focused: boolean }) {
-  const scale = useSharedValue(focused ? 1 : 0.8);
+  const scale = useSharedValue(1);
+  const translateY = useSharedValue(0);
 
   useEffect(() => {
-    scale.value = withSpring(focused ? 1 : 0.8, { damping: 13, stiffness: 220 });
-  }, [focused, scale]);
+    scale.value = withSpring(focused ? 1.15 : 1, { damping: 12, stiffness: 240 });
+    translateY.value = withSpring(focused ? -2 : 0, { damping: 12, stiffness: 240 });
+  }, [focused, scale, translateY]);
 
   const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    transform: [{ scale: scale.value }, { translateY: translateY.value }],
   }));
 
   return (
-    <Animated.View style={[styles.iconWrap, focused && styles.iconActive, animStyle]}>
+    <Animated.View style={[styles.iconWrap, animStyle]}>
       {icon}
     </Animated.View>
   );
@@ -29,15 +31,27 @@ export default function TabLayout() {
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: '#FFFFFF',
+        tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.textDim,
         tabBarStyle: {
-          backgroundColor: colors.bgCard,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: Platform.OS === 'ios' ? 90 : 68,
-          paddingBottom: Platform.OS === 'ios' ? 28 : 10,
-          paddingTop: 10,
+          position: 'absolute',
+          bottom: Platform.OS === 'ios' ? 32 : 20,
+          left: 20,
+          right: 20,
+          backgroundColor: '#1C1C34',
+          borderRadius: 32,
+          borderTopWidth: 0,
+          height: 64,
+          paddingBottom: 0,
+          paddingTop: 0,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 10 },
+          shadowOpacity: 0.35,
+          shadowRadius: 28,
+          elevation: 18,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 0,
         },
         tabBarIcon: ({ color, focused }) => {
           const icons: Record<string, React.ReactNode> = {
@@ -62,13 +76,9 @@ export default function TabLayout() {
 
 const styles = StyleSheet.create({
   iconWrap: {
-    width: 48,
-    height: 38,
-    borderRadius: radius.full,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  iconActive: {
-    backgroundColor: colors.accent,
   },
 });

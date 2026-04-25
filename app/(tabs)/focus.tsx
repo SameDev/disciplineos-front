@@ -314,7 +314,7 @@ const styles = StyleSheet.create({
   scroll: {
     padding: spacing.lg,
     gap: spacing.lg,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: 110,
   },
   header: {
     flexDirection: 'row',

@@ -268,7 +268,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
+    paddingTop: spacing.sm,
+    paddingBottom: 110,
   },
   footerKey: {
     color: colors.textDim,

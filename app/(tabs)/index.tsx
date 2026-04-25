@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
 
   list: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing['2xl'],
+    paddingBottom: 110,
   },
   separator: { height: spacing.sm },
 
