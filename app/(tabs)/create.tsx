@@ -43,6 +43,7 @@ export default function CreateTaskScreen() {
     params.editDifficulty ?? null,
   );
   const [type, setType] = useState<TaskType>(params.editType ?? 'one_time');
+  const [stepGoalText, setStepGoalText] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const createTask = useCreateTask();
@@ -77,10 +78,12 @@ export default function CreateTaskScreen() {
       return;
     }
 
+    const stepGoalNum = stepGoalText.trim() ? parseInt(stepGoalText.replace(/\D/g, ''), 10) : undefined;
     const result = createTaskSchema.safeParse({
       title: title.trim(),
       difficulty,
       type,
+      stepGoal: stepGoalNum && stepGoalNum > 0 ? stepGoalNum : undefined,
     });
     if (!result.success) {
       const fieldErrors: Record<string, string> = {};
@@ -191,6 +194,23 @@ export default function CreateTaskScreen() {
             {errors.title ? <Text style={styles.errorText}>{errors.title}</Text> : null}
           </View>
 
+          {/* Step goal */}
+          <View style={styles.field}>
+            <Text style={styles.label}>👣 Meta de passos <Text style={styles.labelOptional}>(opcional)</Text></Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Ex: 10000"
+              placeholderTextColor={colors.textDim}
+              value={stepGoalText}
+              onChangeText={(t) => setStepGoalText(t.replace(/\D/g, ''))}
+              keyboardType="number-pad"
+              maxLength={6}
+            />
+            <Text style={styles.fieldHint}>
+              App completa a tarefa automaticamente quando a meta for atingida
+            </Text>
+          </View>
+
           {/* Difficulty */}
           <View style={styles.field}>
             <Text style={styles.label}>Dificuldade</Text>
@@ -292,6 +312,8 @@ const styles = StyleSheet.create({
   },
   inputError: { borderColor: colors.danger },
   errorText: { color: colors.danger, fontSize: fontSize.xs },
+  labelOptional: { color: colors.textDim, fontWeight: '400', fontSize: fontSize.sm },
+  fieldHint: { color: colors.textDim, fontSize: fontSize.xs, lineHeight: 16 },
   diffRow: { flexDirection: 'row', gap: spacing.sm },
   diffOption: {
     flex: 1,

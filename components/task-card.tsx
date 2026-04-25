@@ -22,13 +22,14 @@ interface TaskCardProps {
   onEdit: (task: TaskWithCompletion) => void;
   onDelete: (task: TaskWithCompletion) => void;
   isCompleting: boolean;
+  currentSteps?: number;
   index?: number;
 }
 
 const SWIPE_THRESHOLD = 60;
 const ACTION_WIDTH = 130;
 
-export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting, index = 0 }: TaskCardProps) {
+export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting, currentSteps = 0, index = 0 }: TaskCardProps) {
   const [showXP, setShowXP] = useState(false);
   const xpOpacity = useSharedValue(0);
   const xpTranslateY = useSharedValue(0);
@@ -180,6 +181,26 @@ export function TaskCard({ task, onComplete, onEdit, onDelete, isCompleting, ind
                 <Text style={styles.doneTag}>✓ feito hoje</Text>
               )}
             </View>
+
+            {task.stepGoal != null && !task.completed_today && (() => {
+              const pct = Math.min(currentSteps / task.stepGoal, 1);
+              const stepsDisplay = currentSteps >= 1000
+                ? `${(currentSteps / 1000).toFixed(1)}k`
+                : String(currentSteps);
+              const goalDisplay = task.stepGoal >= 1000
+                ? `${(task.stepGoal / 1000).toFixed(0)}k`
+                : String(task.stepGoal);
+              return (
+                <View style={styles.stepBlock}>
+                  <View style={styles.stepTrack}>
+                    <View style={[styles.stepFill, { width: `${pct * 100}%` as `${number}%`, backgroundColor: diffColor }]} />
+                  </View>
+                  <Text style={styles.stepLabel}>
+                    👣 {stepsDisplay} / {goalDisplay} passos
+                  </Text>
+                </View>
+              );
+            })()}
           </View>
 
           <Animated.View style={btnStyle}>
@@ -321,6 +342,22 @@ const styles = StyleSheet.create({
   xpDone: { color: colors.textDim },
   monthCount: { color: colors.textMuted, fontSize: fontSize.xs },
   doneTag: { color: colors.success, fontSize: fontSize.xs, fontWeight: '600' },
+  stepBlock: { gap: 3, marginTop: 2 },
+  stepTrack: {
+    height: 4,
+    backgroundColor: colors.border,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  stepFill: {
+    height: 4,
+    borderRadius: 2,
+  },
+  stepLabel: {
+    color: colors.textMuted,
+    fontSize: fontSize.xs,
+    fontWeight: '500',
+  },
   completeBtn: {
     width: 44,
     height: 44,

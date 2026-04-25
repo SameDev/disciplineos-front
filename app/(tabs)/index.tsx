@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { XPBar } from '@/components/xp-bar';
 import { StatBadge } from '@/components/stat-badge';
 import { TaskCard } from '@/components/task-card';
 import { ConfettiBlast } from '@/components/confetti-blast';
+import { usePedometer } from '@/hooks/use-pedometer';
 import { LevelUpToast } from '@/components/level-up-toast';
 import { Trophy, Flame, Zap } from 'lucide-react-native';
 import { colors, fontSize, spacing, radius } from '@/constants/theme';
@@ -64,6 +65,9 @@ export default function HomeScreen() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [newLevel, setNewLevel] = useState(1);
+
+  const { steps, isAvailable: pedometerAvailable } = usePedometer();
+  const autoCompletedRef = useRef<Set<string>>(new Set());
 
   const isRefreshing = tasksLoading || profileLoading;
   const dateStr = useMemo(() => getDateStr(), []);
@@ -111,6 +115,22 @@ export default function HomeScreen() {
     deleteTask.mutate(task.id);
   }, [deleteTask]);
 
+  useEffect(() => {
+    if (!pedometerAvailable || !tasks || steps === 0) return;
+    tasks.forEach((task) => {
+      if (
+        task.stepGoal != null &&
+        !task.completed_today &&
+        steps >= task.stepGoal &&
+        !autoCompletedRef.current.has(task.id) &&
+        completingTaskId.current !== task.id
+      ) {
+        autoCompletedRef.current.add(task.id);
+        handleComplete(task);
+      }
+    });
+  }, [steps, tasks, pedometerAvailable, handleComplete]);
+
   const level = profile?.level ?? 1;
   const xpProgress = profile ? xpProgressInLevel(profile.xp) : 0;
   const xpNeeded = xpToNextLevel(level);
@@ -136,9 +156,10 @@ export default function HomeScreen() {
       onEdit={handleEdit}
       onDelete={handleDelete}
       isCompleting={completingTaskId.current === item.id}
+      currentSteps={steps}
       index={index}
     />
-  ), [handleComplete, handleEdit, handleDelete]);
+  ), [handleComplete, handleEdit, handleDelete, steps]);
 
   const keyExtractor = useCallback((item: TaskWithCompletion) => item.id, []);
 

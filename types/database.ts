@@ -20,6 +20,7 @@ export interface Task {
   title: string;
   type: TaskType;
   difficulty: Difficulty;
+  stepGoal: number | null;
   userId: string;
   createdAt: string;
 }
@@ -43,6 +44,7 @@ export const createTaskSchema = z.object({
     message: 'Selecione a dificuldade',
   }),
   type: z.enum(['daily', 'weekly', 'one_time']).default('daily'),
+  stepGoal: z.number().int().positive().optional(),
 });
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;
@@ -51,6 +53,7 @@ export const updateTaskSchema = z.object({
   title: z.string().min(1, 'Título é obrigatório').max(100).optional(),
   difficulty: z.enum(['easy', 'medium', 'hard']).optional(),
   type: z.enum(['daily', 'weekly', 'one_time']).optional(),
+  stepGoal: z.number().int().positive().nullable().optional(),
 });
 
 export type UpdateTaskInput = z.infer<typeof updateTaskSchema>;
