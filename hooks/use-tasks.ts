@@ -14,10 +14,7 @@ export function useTasks() {
 
   return useQuery<TaskWithCompletion[]>({
     queryKey: ['tasks'],
-    queryFn: async () => {
-      const tasks = await api.get<Task[]>('/tasks');
-      return tasks.map((t) => ({ ...t, completed_today: false }));
-    },
+    queryFn: () => api.get<TaskWithCompletion[]>('/tasks'),
     enabled: !!token,
   });
 }
