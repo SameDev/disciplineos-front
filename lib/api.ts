@@ -1,7 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const BASE_URL = 'https://metaquest-api.onrender.com';
-const TOKEN_KEY = 'metaquest_token';
+const TOKEN_KEY = 'disciplineos_token';
 
 export async function getToken(): Promise<string | null> {
   return AsyncStorage.getItem(TOKEN_KEY);

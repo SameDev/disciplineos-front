@@ -1,18 +1,18 @@
 {
   "expo": {
-    "name": "focus",
-    "slug": "focus",
+    "name": "DisciplineOS",
+    "slug": "disciplineos",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "focus",
+    "scheme": "disciplineos",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
     "android": {
-      "package": "com.samedev.focus",
+      "package": "com.samedev.disciplineos",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

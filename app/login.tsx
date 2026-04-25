@@ -9,6 +9,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { router } from 'expo-router';
 import { Shield } from 'lucide-react-native';
 import { useAuth } from '@/hooks/use-auth';
 import { colors, fontSize, radius, spacing } from '@/constants/theme';
@@ -63,7 +64,7 @@ export default function LoginScreen() {
       <View style={styles.content}>
         <View style={styles.hero}>
           <Shield size={64} color={colors.accent} />
-          <Text style={styles.title}>MetaQuest</Text>
+          <Text style={styles.title}>DisciplineOS</Text>
           <Text style={styles.subtitle}>Gamifique suas tarefas diárias</Text>
         </View>
 
@@ -117,6 +118,15 @@ export default function LoginScreen() {
               {isSignUp ? 'Já tem conta? Entrar' : 'Primeira vez? Criar conta'}
             </Text>
           </Pressable>
+
+          {!isSignUp && (
+            <Pressable
+              style={styles.forgotBtn}
+              onPress={() => router.push('/forgot-password')}
+            >
+              <Text style={styles.forgotText}>Esqueci minha senha</Text>
+            </Pressable>
+          )}
         </View>
       </View>
     </KeyboardAvoidingView>
@@ -187,5 +197,13 @@ const styles = StyleSheet.create({
     color: colors.accent,
     fontSize: fontSize.sm,
     fontWeight: '600',
+  },
+  forgotBtn: {
+    alignItems: 'center',
+    paddingVertical: spacing.xs,
+  },
+  forgotText: {
+    color: colors.textMuted,
+    fontSize: fontSize.sm,
   },
 });
