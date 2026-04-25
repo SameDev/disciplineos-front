@@ -11,7 +11,7 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import Animated, { FadeInDown, FadeInUp, FadeIn } from 'react-native-reanimated';
-import { CheckCircle, Star, Clipboard } from 'lucide-react-native';
+import { CheckCircle, Star, Clipboard, Plus } from 'lucide-react-native';
 import { useTasks, useCompleteTask, useDeleteTask } from '@/hooks/use-tasks';
 import { useProfile } from '@/hooks/use-profile';
 import { xpToNextLevel, xpProgressInLevel } from '@/lib/gamification';
@@ -178,6 +178,12 @@ export default function HomeScreen() {
             <Text style={styles.dateText}>{dateStr}</Text>
             <Text style={styles.greeting}>Olá, {firstName}!</Text>
           </View>
+          <Pressable
+            style={styles.addBtn}
+            onPress={() => router.push('/(tabs)/create')}
+          >
+            <Plus size={20} color="#FFF" />
+          </Pressable>
         </Animated.View>
 
         {/* Motivation subtitle */}
@@ -330,7 +336,21 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   greetingBlock: {
+    flex: 1,
     gap: 1,
+  },
+  addBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: radius.full,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: colors.accent,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 5,
   },
   dateText: {
     color: colors.textDim,
